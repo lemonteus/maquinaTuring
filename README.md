@@ -2,6 +2,7 @@
 
 ### Dupla:
 Mateus Lemos de Freitas Barbosa
+
 Rafael Augusto de Souza
 
 ## Compilar
