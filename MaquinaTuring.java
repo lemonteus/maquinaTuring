@@ -11,15 +11,12 @@ public class MaquinaTuring {
 
     public static void main(String args[])
     {
-        //System.out.println(args[1]);
         boolean emptyStr = false;
 
         if (args.length == 2) {
             
-            if(args[1].equals("")) 
+            if(args[1].equals("") || args[1].equals("\"\"")) 
                 emptyStr = true;
-                //System.out.println(args[1]);
-                //System.out.println("Usar: java mt [MT] [Word]"); 
 
             File file = new File(args[0]);
             String[] rawWord = args[1].split("");
@@ -40,7 +37,7 @@ public class MaquinaTuring {
                 
                 jsonArrays.forEach((array) -> arrays.add(array));
                 
-                //Estados TALVEZ VAI TER QUE MUDAR POR CAUSA DE COMPATIBILIDADE
+                //Estados
                 StateList sl = new StateList((JSONArray) arrays.get(0));
 
                 JSONArray auxArray;
@@ -76,79 +73,99 @@ public class MaquinaTuring {
                 ArrayList<String> tape = new ArrayList<String>();
                 tape.add(startMarker);
 
-                //Processando a palavra, escrevendo os caracteres na fita 
-                //TODO: MUDAR ISSO DPS
+                boolean recognizes = false;
+                boolean done = false;
 
+                //Processando a palavra, escrevendo os caracteres na fita 
                 if (!emptyStr) {
                     for (int i = 0; i < rawWord.length; i++){
-                        if (alfabetoFita.indexOf(rawWord[i]) != -1)
+                        if (alfabetoEntrada.indexOf(rawWord[i]) != -1)
                         {
                             tape.add(rawWord[i]);
+                        } else {
+                            done = true;
+                            recognizes = false;
                         }
-                        //System.out.println(rawWord[i]);
                     }
                 } else {
                     tape.add(emptySymbol);
                 }
 
                 //Encontrar o estado inicial, pegar o primeiro simbolo da palavra e seguir a partir dela
+                
                 State currentState = sl.getState(startState);
                 Transition currentTransition = null;
                 State destState;
-                //TODO: implementar o rawWord depois
                 int tapeHead = 1;
-                String symbol = tape.get(tapeHead);
-                boolean recognizes = false;
-                boolean done = false;
+                String symbol = "";
+                
+                if(!done)
+                symbol = tape.get(tapeHead);
 
-                while(!done)
-                {
-                    currentTransition = null;
-                    //System.out.println(tape +"\n Head: "+tapeHead);  
-                    //String buffer = new Scanner(System.in).nextLine();
-
-                    if (currentState.getFinal())
-                        recognizes = true;
-                    else
-                        recognizes = false;
-
-                    if (tapeHead >= tape.size())
+                try{
+                
+                    while(!done)
                     {
-                        tape.add(emptySymbol);
-                    }     
-                    
-                    symbol = tape.get(tapeHead);
-                    //System.out.println(symbol);   
-                    currentTransition = tl.getTransition(currentState.getName(), symbol);
-                    
-                    if ((currentTransition != null)) {
+                        currentTransition = null;
+                        //System.out.println(tape +"\n Head: "+tapeHead);  
+                        //String buffer = new Scanner(System.in).nextLine();
 
-                        destState = currentTransition.getTransitionDestState();
-
-                        if(!destState.equals(null)) {
-                            
-
-                            tape.remove(tapeHead);
-                            
-                            tape.add(tapeHead, currentTransition.getWriteSymbol());
-                            if(tapeHead > 0)
-                                tapeHead = tapeHead + currentTransition.getTapeHeadDirection();
-                            else 
-                                tapeHead = 0;
-    
-                            currentState = destState;      
-                                        
-                        } else {
+                        if (alfabetoFita.indexOf(symbol) == -1)
+                        {
+                            done = true;
                             recognizes = false;
                         }
+
+                        if (currentState.getFinal())
+                            recognizes = true;
+                        else
+                            recognizes = false;
+
+                        if (tapeHead >= tape.size())
+                        {
+                            tape.add(emptySymbol);
+                        }     
+                        
+                        symbol = tape.get(tapeHead);
+                        currentTransition = tl.getTransition(currentState.getName(), symbol);
+                        
+                        if ((currentTransition != null)) {
+
+                            destState = currentTransition.getTransitionDestState();
+
+                            if(!destState.equals(null)) {
+                                
+                                tape.remove(tapeHead);
+                                
+                                tape.add(tapeHead, currentTransition.getWriteSymbol());
+                                if(tapeHead > 0)
+                                    tapeHead = tapeHead + currentTransition.getTapeHeadDirection();
+                                else 
+                                    tapeHead = 0;
+        
+                                currentState = destState;      
+                                            
+                            } else {
+                                recognizes = false;
+                            }
+                        }
+                        else done = true;                    
                     }
-                    else done = true;                    
+                } catch (OutOfMemoryError e)
+                {
+                    if (currentState.getFinal()){
+                     System.out.println("Sim");
+                    }
+                    else{
+                    System.out.println("Não");
+                    }
+
                 }
 
                 if(done && recognizes)
                 {
                     System.out.println("Sim");
-                } else {
+                } else if (done && !recognizes) {
                     System.out.println("Não");
                 }
 
@@ -158,7 +175,6 @@ public class MaquinaTuring {
             }
 
         } else {
-            //System.out.println(args[1]);
             System.out.println("Usar: java mt [MT] [Word]");
 
         }
